@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CosmoMind - 3D Mind Mapping Galaxy</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading" class="loading">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Initializing CosmoMind Galaxy...</div>
+    </div>
+  </div>
+
+  <!-- Main UI Overlay -->
+  <div class="ui-overlay">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="logo">
+        <i class="fas fa-rocket"></i>
+        <span>CosmoMind</span>
+      </div>
+      
+      <!-- Search Bar -->
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search nodes..." class="search-input">
+        <button id="searchBtn" class="search-btn">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      
+              <!-- Control Buttons -->
+        <div class="controls">
+          <button id="addNodeBtn" class="control-btn" title="Add New Node">
+            <i class="fas fa-plus"></i>
+          </button>
+                      <button id="addSubNodeBtn" class="control-btn" title="Add Sub/Tertiary Node">
+              <i class="fas fa-satellite"></i>
+            </button>
+          <button id="galaxyViewBtn" class="control-btn" title="Galactic View">
+            <i class="fas fa-globe"></i>
+          </button>
+          <button id="settingsBtn" class="control-btn" title="Settings">
+            <i class="fas fa-cog"></i>
+          </button>
+                      <button id="saveBtn" class="control-btn" title="Save Project">
+              <i class="fas fa-save"></i>
+            </button>
+            <button id="exportBtn" class="control-btn" title="Export Project">
+              <i class="fas fa-download"></i>
+            </button>
+            <button id="importBtn" class="control-btn" title="Import Project">
+              <i class="fas fa-upload"></i>
+            </button>
+            <button id="screenshotBtn" class="control-btn" title="Export Screenshot">
+              <i class="fas fa-camera"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div id="instructions" class="instructions fade-in">
+      <h3><i class="fas fa-info-circle"></i> Welcome to CosmoMind</h3>
+      <ul>
+        <li><strong>Click planets</strong> to navigate with spaceship</li>
+        <li><strong>Drag to rotate</strong> camera around the galaxy</li>
+        <li><strong>Scroll to zoom</strong> in and out</li>
+        <li><strong>R key</strong> - Reset camera</li>
+        <li><strong>H key</strong> - Return spaceship home</li>
+      </ul>
+      <button id="closeInstructions" class="close-btn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Node Info Panel -->
+    <div id="nodeInfo" class="node-info hidden">
+      <div class="node-info-header">
+        <h3>Node Details</h3>
+        <button id="closeNodeInfo" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="node-info-content">
+        <div class="form-group">
+          <label for="nodeTitleInput">Node Title:</label>
+          <input type="text" id="nodeTitleInput" placeholder="Enter node title...">
+        </div>
+        <div class="form-group">
+          <label for="nodeContent">Content:</label>
+          <textarea id="nodeContent" placeholder="Enter your thoughts here..."></textarea>
+        </div>
+                      <div class="node-actions">
+                <button id="viewFullContentBtn" class="action-btn">
+                  <i class="fas fa-eye"></i> View Full Content
+                </button>
+                <button id="saveChangesBtn" class="action-btn">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button id="deleteNodeBtn" class="action-btn danger">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+      </div>
+    </div>
+
+    <!-- Add Node Panel -->
+    <div id="addNodePanel" class="panel hidden">
+      <div class="panel-header">
+        <h3><i class="fas fa-plus-circle"></i> Add New Node</h3>
+        <button id="closeAddPanel" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label for="newNodeTitle">Node Title:</label>
+          <input type="text" id="newNodeTitle" placeholder="Enter node title">
+        </div>
+        <div class="form-group">
+          <label for="newNodeContent">Content:</label>
+          <textarea id="newNodeContent" placeholder="Enter node content"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="newNodeType">Node Type:</label>
+          <select id="newNodeType">
+            <option value="planet">Planet (Primary Idea)</option>
+            <option value="moon">Moon (Secondary Idea)</option>
+            <option value="asteroid">Asteroid (Tertiary Detail)</option>
+          </select>
+        </div>
+        <div class="form-group" id="parentNodeGroup" style="display: none;">
+          <label for="parentNodeSelect">Parent Node:</label>
+          <select id="parentNodeSelect">
+            <option value="">Select a parent node...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="newNodeColor">Color:</label>
+          <input type="color" id="newNodeColor" value="#88ccff">
+        </div>
+        <div class="form-actions">
+          <button id="createNodeBtn" class="primary-btn">
+            <i class="fas fa-rocket"></i> Create Node
+          </button>
+          <button id="cancelAddBtn" class="secondary-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="panel hidden">
+      <div class="panel-header">
+        <h3><i class="fas fa-cog"></i> Galaxy Settings</h3>
+        <button id="closeSettings" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label for="galaxyTheme">Galaxy Theme:</label>
+          <select id="galaxyTheme">
+            <option value="spiral">Spiral Galaxy</option>
+            <option value="solar">Solar System</option>
+            <option value="nebula">Nebula Web</option>
+            <option value="freeform">Freeform 3D Space</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="orbitSpeed">Orbit Speed:</label>
+          <input type="range" id="orbitSpeed" min="0.1" max="2" step="0.1" value="1">
+          <span id="orbitSpeedValue">1.0</span>
+        </div>
+        <div class="form-group">
+          <label for="spaceshipMode">Spaceship Mode:</label>
+          <select id="spaceshipMode">
+            <option value="auto">Auto-Travel</option>
+            <option value="manual">Manual Control</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="trailEffect">Light Trail Effect:</label>
+          <input type="checkbox" id="trailEffect" checked>
+        </div>
+        <div class="form-actions">
+          <button id="applySettings" class="primary-btn">Apply Settings</button>
+          <button id="resetSettings" class="secondary-btn">Reset to Default</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="navigation-controls">
+      <div class="nav-group">
+        <button id="homeBtn" class="nav-btn" title="Go Home">
+          <i class="fas fa-home"></i>
+        </button>
+        <button id="resetBtn" class="nav-btn" title="Reset Camera">
+          <i class="fas fa-crosshairs"></i>
+        </button>
+      </div>
+      <div class="nav-group">
+        <button id="zoomInBtn" class="nav-btn" title="Zoom In">
+          <i class="fas fa-search-plus"></i>
+        </button>
+        <button id="zoomOutBtn" class="nav-btn" title="Zoom Out">
+          <i class="fas fa-search-minus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <i class="fas fa-satellite"></i>
+        <span id="nodeCount">0 Nodes</span>
+      </div>
+      <div class="status-item">
+        <i class="fas fa-rocket"></i>
+        <span id="spaceshipStatus">Idle</span>
+      </div>
+      <div class="status-item">
+        <i class="fas fa-eye"></i>
+        <span id="cameraInfo">Camera: 0, 20, 50</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Full Content Modal -->
+  <div id="fullContentModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="fullContentTitle">Node Content</h3>
+        <button id="closeFullContentModal" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="fullContentText" class="full-content-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="importFileInput" accept=".json" style="display: none;">
+  
+  <!-- Include Three.js and dependencies -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html> 
