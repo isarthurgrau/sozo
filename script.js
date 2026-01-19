@@ -5,17 +5,16 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 // Global variables
 let scene, camera, renderer, controls, labelRenderer;
 let planets = [];
-let spaceship;
+let explorer;
 let raycaster, mouse;
 let animationId;
 let trailEffect = true;
 let orbitSpeed = 1.0;
-let spaceshipMode = 'auto';
+let explorerMode = 'auto';
 let selectedNode = null;
 let isInitialized = false;
 let communicationLines = null;
 let communicationTarget = null;
-let communicationBalls = [];
 let autoSaveTimer = null;
 const AUTO_SAVE_DELAY = 3000; // 3 seconds
 
@@ -26,7 +25,7 @@ let mindMapData = {
     settings: {
         galaxyTheme: 'spiral',
         orbitSpeed: 1.0,
-        spaceshipMode: 'auto',
+        explorerMode: 'auto',
         trailEffect: true
     }
 };
@@ -79,8 +78,10 @@ function init() {
     // Create initial mind map nodes
     createInitialNodes();
     
-    // Create spaceship
-    createSpaceship();
+    // Create explorer
+
+    createexplorer
+();
     
     // Setup interactions
     setupInteractions();
@@ -338,19 +339,20 @@ function createNodeLabel(node, title) {
     }
 }
 
-// Create communication lines between spaceship and target
-function createCommunicationLines(spaceship, targetNode) {
-    // Remove existing communication lines and balls
+// Create communication lines between explorer and target //
+function createCommunicationLines(explorer
+, targetNode) {
+    // Remove existing communication lines //
     if (communicationLines) {
         scene.remove(communicationLines);
     }
-    removeCommunicationBalls();
     
     // Create a group to hold both lines
     communicationLines = new THREE.Group();
     
     // Get positions
-    const shipPos = spaceship.position.clone();
+    const shipPos = explorer
+.position.clone();
     const targetPos = targetNode.position.clone();
     
     // Calculate midpoint for convergence
@@ -358,13 +360,13 @@ function createCommunicationLines(spaceship, targetNode) {
     midpoint.addVectors(shipPos, targetPos);
     midpoint.multiplyScalar(0.5);
     
-    // Create first line from spaceship to midpoint
+    // Create first line from explorer to midpoint //
     const line1Geometry = new THREE.BufferGeometry().setFromPoints([
         shipPos,
         midpoint
     ]);
     const line1Material = new THREE.LineBasicMaterial({ 
-        color: 0x00ffcc, 
+        color: 0xebebeb, 
         transparent: true, 
         opacity: 0.8,
         linewidth: 2
@@ -377,7 +379,7 @@ function createCommunicationLines(spaceship, targetNode) {
         targetPos
     ]);
     const line2Material = new THREE.LineBasicMaterial({ 
-        color: 0x00ffcc, 
+        color: 0xebebeb, 
         transparent: true, 
         opacity: 0.8,
         linewidth: 2
@@ -391,112 +393,10 @@ function createCommunicationLines(spaceship, targetNode) {
     // Add to scene
     scene.add(communicationLines);
     
-    // Create communication balls
-    createCommunicationBalls(shipPos, midpoint, targetPos);
-    
     // Store target reference
     communicationTarget = targetNode;
     
     console.log(`Communication lines created to ${targetNode.userData.title}`);
-}
-
-// Create communication balls
-function createCommunicationBalls(shipPos, midpoint, targetPos) {
-    // Remove existing balls
-    removeCommunicationBalls();
-    
-    // Create multiple balls for visual effect
-    const ballCount = 3;
-    
-    for (let i = 0; i < ballCount; i++) {
-        // Create ball geometry and material
-        const ballGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-        const ballMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.9
-        });
-        
-        const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-        
-        // Set initial position and animation data
-        ball.userData = {
-            startPos: shipPos.clone(),
-            endPos: targetPos.clone(),
-            midpoint: midpoint.clone(),
-            progress: (i / ballCount) * 2, // Stagger the balls
-            direction: 1, // 1 = ship to target, -1 = target to ship
-            speed: 0.02 + (Math.random() * 0.01), // Slightly different speeds
-            phase: i * 0.3 // Different starting phases
-        };
-        
-        // Set initial position
-        ball.position.copy(shipPos);
-        
-        // Add to scene and tracking array
-        scene.add(ball);
-        communicationBalls.push(ball);
-    }
-    
-    console.log(`Created ${ballCount} communication balls`);
-}
-
-// Update communication balls animation
-function updateCommunicationBalls(shipPos, midpoint, targetPos) {
-    communicationBalls.forEach(ball => {
-        const data = ball.userData;
-        
-        // Update progress
-        data.progress += data.speed * data.direction;
-        
-        // Reverse direction when reaching endpoints
-        if (data.progress >= 2) {
-            data.progress = 2;
-            data.direction = -1;
-        } else if (data.progress <= 0) {
-            data.progress = 0;
-            data.direction = 1;
-        }
-        
-        // Calculate position based on progress
-        let currentPos;
-        if (data.progress <= 1) {
-            // First half: ship to midpoint
-            const t = data.progress;
-            currentPos = new THREE.Vector3();
-            currentPos.lerpVectors(data.startPos, data.midpoint, t);
-        } else {
-            // Second half: midpoint to target
-            const t = data.progress - 1;
-            currentPos = new THREE.Vector3();
-            currentPos.lerpVectors(data.midpoint, data.endPos, t);
-        }
-        
-        // Update ball position
-        ball.position.copy(currentPos);
-        
-        // Add subtle pulsing effect
-        const time = Date.now() * 0.005;
-        const pulse = 0.8 + Math.sin(time + data.phase) * 0.2;
-        ball.scale.setScalar(pulse);
-        
-        // Update opacity for fade effect at endpoints
-        if (data.progress < 0.1 || data.progress > 1.9) {
-            ball.material.opacity = data.progress < 0.1 ? data.progress * 10 : (2 - data.progress) * 10;
-        } else {
-            ball.material.opacity = 0.9;
-        }
-    });
-}
-
-// Remove communication balls
-function removeCommunicationBalls() {
-    communicationBalls.forEach(ball => {
-        scene.remove(ball);
-        ball.geometry.dispose();
-        ball.material.dispose();
-    });
-    communicationBalls = [];
 }
 
 // Remove communication lines
@@ -506,54 +406,26 @@ function removeCommunicationLines() {
         communicationLines = null;
         communicationTarget = null;
     }
-    removeCommunicationBalls();
-    console.log('Communication lines and balls removed');
+    console.log('Communication lines removed');
 }
 
-// Create spaceship
-function createSpaceship() {
-    spaceship = new THREE.Group();
-    
-    // Ship body (cylinder)
-    const body = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.6, 0.6, 2, 16),
-        new THREE.MeshStandardMaterial({ 
-            color: 0x444444,
-            roughness: 0.8,
-            metalness: 0.2
-        })
-    );
-    
-    // Ship nose (cone)
-    const nose = new THREE.Mesh(
-        new THREE.ConeGeometry(1, 3, 8),
-        new THREE.MeshStandardMaterial({ 
-            color: 0x00ffcc
-        })
-    );
-    nose.rotation.x = Math.PI;
-    nose.position.y = 2.5;
-    
-    // Ship wings
-    const wingGeometry = new THREE.BoxGeometry(4, 0.2, 1);
-    const wingMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
-    
-    const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    leftWing.position.set(-2, 0, 0);
-    
-    const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    rightWing.position.set(2, 0, 0);
-    
-    spaceship.add(body);
-    spaceship.add(nose);
-    spaceship.add(leftWing);
-    spaceship.add(rightWing);
-    
-    spaceship.position.set(0, 0, 15);
-    scene.add(spaceship);
-    
-    console.log('Spaceship created');
+// Create explorer
+
+function createExplorer() {
+  const div = document.createElement('div');
+  div.className = 'explorer-icon';
+  div.innerHTML = '<i class="fa-solid fa-user-astronaut"></i>';
+
+  const explorerLabel = new CSS2DObject(div);
+  explorer = new THREE.Object3D();
+  explorer.add(explorerLabel);
+
+  explorer.position.set(0, 0, 15);
+  scene.add(explorer);
+
+  console.log('Explorer created');
 }
+
 
 // Setup interactions
 function setupInteractions() {
@@ -727,7 +599,8 @@ function onNodeClick(event) {
         selectedNode = targetNode;
         
         // Create communication lines
-        createCommunicationLines(spaceship, targetNode);
+        createCommunicationLines(explorer
+, targetNode);
         
         // Handle moon clicks - toggle asteroid visibility
         if (targetNode.userData.type === 'moon') {
@@ -737,8 +610,8 @@ function onNodeClick(event) {
         // Show node info panel
         showNodeInfo(targetNode);
         
-        // Navigate spaceship if in auto mode
-        if (spaceshipMode === 'auto') {
+        // Navigate explorer if in auto mode //
+        if (explorerMode === 'auto') {
             navigateToNode(targetNode);
         }
     }
@@ -767,30 +640,32 @@ function showNodeInfo(node) {
     nodeInfo.classList.remove('hidden');
 }
 
-// Navigate spaceship to node
+// Navigate explorer to node //
 function navigateToNode(targetNode) {
     const target = targetNode.position.clone();
     target.y += 3;
     
-    updateSpaceshipStatus('Traveling...');
+    updateexplorer
+Status('Traveling...');
     
-    // Animate spaceship to node
-    gsap.to(spaceship.position, {
+    // Animate explorer to node //
+    gsap.to(explorer.position, {
         x: target.x,
         y: target.y,
         z: target.z,
         duration: 3,
         ease: "power2.out",
         onUpdate: () => {
-            spaceship.lookAt(targetNode.position);
+            // explorer.lookAt(targetNode.position);
         },
         onComplete: () => {
-            updateSpaceshipStatus('Arrived');
-            setTimeout(() => updateSpaceshipStatus('Idle'), 2000);
+            updateexplorer
+Status('Arrived');
+            setTimeout(() => updateexplorerStatus('Idle'), 2000);
         }
     });
     
-    console.log(`Flying to ${targetNode.userData.title}`);
+    console.log(`Moving explorer to ${targetNode.userData.title}`);
 }
 
 // Save node changes
@@ -970,7 +845,7 @@ function deleteCurrentNode() {
                 removeCommunicationLines();
             }
             
-            // Return spaceship to center
+            // Return explorer to center //
             goHome();
             
             // Close the panel
@@ -1236,12 +1111,12 @@ function updateMoonLabel(moonNode, asteroidsVisible) {
 // Apply settings
 function applySettings() {
     const theme = document.getElementById('galaxyTheme').value;
-    const mode = document.getElementById('spaceshipMode').value;
+    const mode = document.getElementById('exploreMode').value;
     const trail = document.getElementById('trailEffect').checked;
     const speed = parseFloat(document.getElementById('orbitSpeed').value);
     
     // Update global variables
-    spaceshipMode = mode;
+    explorerMode = mode;
     trailEffect = trail;
     orbitSpeed = speed;
     
@@ -1249,7 +1124,7 @@ function applySettings() {
     mindMapData.settings = {
         galaxyTheme: theme,
         orbitSpeed: speed,
-        spaceshipMode: mode,
+        explorerMode: mode,
         trailEffect: trail
     };
     
@@ -1266,7 +1141,7 @@ function resetToDefaultSettings() {
     const defaultSettings = {
         galaxyTheme: 'spiral',
         orbitSpeed: 1.0,
-        spaceshipMode: 'auto',
+        explorerMode: 'auto',
         trailEffect: true
     };
     
@@ -1274,12 +1149,12 @@ function resetToDefaultSettings() {
     document.getElementById('galaxyTheme').value = defaultSettings.galaxyTheme;
     document.getElementById('orbitSpeed').value = defaultSettings.orbitSpeed;
     document.getElementById('orbitSpeedValue').textContent = defaultSettings.orbitSpeed.toFixed(1);
-    document.getElementById('spaceshipMode').value = defaultSettings.spaceshipMode;
+    document.getElementById('explorerMode').value = defaultSettings.explorerMode;
     document.getElementById('trailEffect').checked = defaultSettings.trailEffect;
     
     // Reset global variables
     orbitSpeed = defaultSettings.orbitSpeed;
-    spaceshipMode = defaultSettings.spaceshipMode;
+    explorerMode = defaultSettings.explorerMode;
     trailEffect = defaultSettings.trailEffect;
     
     // Update mind map data
@@ -1303,9 +1178,9 @@ function loadSavedSettings() {
             document.getElementById('orbitSpeedValue').textContent = settings.orbitSpeed.toFixed(1);
             orbitSpeed = settings.orbitSpeed;
         }
-        if (settings.spaceshipMode) {
-            document.getElementById('spaceshipMode').value = settings.spaceshipMode;
-            spaceshipMode = settings.spaceshipMode;
+        if (settings.explorerMode) {
+            document.getElementById('explorerMode').value = settings.explorerMode;
+            exploreMode = settings.explorerMode;
         }
         if (settings.trailEffect !== undefined) {
             document.getElementById('trailEffect').checked = settings.trailEffect;
@@ -1645,7 +1520,7 @@ function goHome() {
     // Remove communication lines
     removeCommunicationLines();
     
-    gsap.to(spaceship.position, {
+    gsap.to(explorer.position, {
         x: 0,
         y: 0,
         z: 15,
@@ -1655,12 +1530,13 @@ function goHome() {
             // Create communication with sun when home
             const sun = planets.find(p => p.userData.type === 'central');
             if (sun) {
-                createCommunicationLines(spaceship, sun);
+                createCommunicationLines(explorer
+, sun);
             }
-            updateSpaceshipStatus('Idle');
+            updateexplorerStatus('Idle');
         }
     });
-    updateSpaceshipStatus('Returning Home');
+    updateexplorerStatus('Returning Home');
 }
 
 function resetCamera() {
@@ -1751,8 +1627,8 @@ function updateParentNodeOptions(parentType = 'planet') {
     }
 }
 
-function updateSpaceshipStatus(status) {
-    document.getElementById('spaceshipStatus').textContent = status;
+function updateexplorerStatus(status) {
+    document.getElementById('explorerStatus').textContent = status;
 }
 
 function updateCameraInfo() {
@@ -1844,9 +1720,9 @@ function animate() {
         }
     });
     
-    // Update communication lines and balls if they exist
+    // Update communication lines if they exist //
     if (communicationLines && communicationTarget) {
-        const shipPos = spaceship.position.clone();
+        const shipPos = explorer.position.clone();
         const targetPos = communicationTarget.position.clone();
         
         // Calculate midpoint for convergence
@@ -1854,7 +1730,7 @@ function animate() {
         midpoint.addVectors(shipPos, targetPos);
         midpoint.multiplyScalar(0.5);
         
-        // Update first line (spaceship to midpoint)
+        // Update first line (explorer to midpoint) //
         const line1 = communicationLines.children[0];
         if (line1 && line1.geometry) {
             const points1 = [shipPos, midpoint];
@@ -1867,9 +1743,6 @@ function animate() {
             const points2 = [midpoint, targetPos];
             line2.geometry.setFromPoints(points2);
         }
-        
-        // Update communication balls
-        updateCommunicationBalls(shipPos, midpoint, targetPos);
     }
     
     // Update UI

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CosmoMind - 3D Mind Mapping Galaxy</title>
+  <title>Sōzō - 3D Mind Mapping</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
   <div id="loading" class="loading">
     <div class="loading-content">
       <div class="loading-spinner"></div>
-      <div class="loading-text">Initializing CosmoMind Galaxy...</div>
+      <div class="loading-text">Initializing...</div>
     </div>
   </div>
 
@@ -21,8 +21,8 @@
     <!-- Top Bar -->
     <div class="top-bar">
       <div class="logo">
-        <i class="fas fa-rocket"></i>
-        <span>CosmoMind</span>
+        <i class="fa-solid fa-o"></i>
+        <span>Sōzō</span>
       </div>
       
       <!-- Search Bar -->
@@ -64,13 +64,13 @@
 
     <!-- Instructions Panel -->
     <div id="instructions" class="instructions fade-in">
-      <h3><i class="fas fa-info-circle"></i> Welcome to CosmoMind</h3>
+      <h3><i class="fas fa-info-circle"></i> Welcome</h3>
       <ul>
-        <li><strong>Click planets</strong> to navigate with spaceship</li>
-        <li><strong>Drag to rotate</strong> camera around the galaxy</li>
-        <li><strong>Scroll to zoom</strong> in and out</li>
-        <li><strong>R key</strong> - Reset camera</li>
-        <li><strong>H key</strong> - Return spaceship home</li>
+        <li>Click planets to navigate with explorer</li>
+        <li>Drag to rotate camera around the galaxy</li>
+        <li>Scroll to zoom in and out</li>
+        <li>R key - Reset camera</li>
+        <li>H key - Return explorer home</li>
       </ul>
       <button id="closeInstructions" class="close-btn">
         <i class="fas fa-times"></i>
@@ -176,8 +176,8 @@
           <span id="orbitSpeedValue">1.0</span>
         </div>
         <div class="form-group">
-          <label for="spaceshipMode">Spaceship Mode:</label>
-          <select id="spaceshipMode">
+          <label for="explorerMode">explorerMode:</label>
+          <select id="explorerMode">
             <option value="auto">Auto-Travel</option>
             <option value="manual">Manual Control</option>
           </select>
@@ -221,7 +221,7 @@
       </div>
       <div class="status-item">
         <i class="fas fa-rocket"></i>
-        <span id="spaceshipStatus">Idle</span>
+        <span id="explorerStatus">Idle</span>
       </div>
       <div class="status-item">
         <i class="fas fa-eye"></i>
