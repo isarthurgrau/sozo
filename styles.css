@@ -1,0 +1,262 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #000011;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Loading Screen */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #000011 0, #1a0033 50%, #000011 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  transition: opacity 0.5s ease-out;
+}
+.loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-content {
+  text-align: center;
+}
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(0, 166, 255, 0.3);
+  border-top: 3px solid #90bbf6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+.loading-text {
+  font-size: 18px;
+  color: #90bbf6;
+  text-shadow: 0 0 10px #90bbf6;
+  animation: pulse 2s infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* UI Overlay */
+.ui-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Top Bar */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.9) 0,
+    rgba(26, 0, 51, 0.9) 100%
+  );
+  border-bottom: 1px solid rgba(0, 166, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: all;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  letter-spacing: 0.3em;
+  color: #90bbf6;
+  text-shadow: 0 0 10px #90bbf6;
+}
+
+.logo i {
+  font-size: 28px;
+  animation: rocket-float 3s ease-in-out infinite;
+}
+
+@keyframes rocket-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #90bbf6;
+  font-size: 13px;
+}
+
+/* Instructions Panel */
+.instructions {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #90bbf6;
+  color: white;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 320px;
+  pointer-events: all;
+  box-shadow: 0 0 20px rgba(0, 166, 255, 0.3);
+}
+
+.instructions h3 {
+  color: #90bbf6;
+  margin-bottom: 15px;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.instructions ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.instructions li {
+  margin-bottom: 8px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.instructions li::before {
+  content: "•";
+  color: #90bbf6;
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Planet Labels */
+.planet-label {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: 1px solid #90bbf6;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(0, 166, 255, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+/* Explorer Icon */
+.explorer-icon {
+  color: #ebebeb;
+  font-size: 20px;
+  filter: drop-shadow(0 0 4px rgba(235, 235, 235, 0.5));
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .top-bar {
+    height: 50px;
+    padding: 0 10px;
+  }
+  .logo {
+    font-size: 18px;
+    letter-spacing: 0.15em;
+  }
+  .instructions {
+    max-width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
+  }
+}

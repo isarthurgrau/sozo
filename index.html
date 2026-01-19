@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sōzō - 3D Mind Map (Minimal)</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Three.js import map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+        "three/addons": "https://unpkg.com/three@0.160.1/examples/jsm"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading" class="loading">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Initializing...</div>
+    </div>
+  </div>
+
+  <!-- Minimal UI Overlay -->
+  <div class="ui-overlay">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="logo">
+        <i class="fa-solid fa-o"></i>
+        <span>Sōzō</span>
+      </div>
+      <div class="status-item">
+        <i class="fa-solid fa-satellite"></i>
+        <span id="nodeCount">0 Nodes</span>
+      </div>
+      <div class="status-item">
+        <i class="fa-solid fa-rocket"></i>
+        <span id="explorerStatus">Idle</span>
+      </div>
+      <div class="status-item">
+        <i class="fa-solid fa-eye"></i>
+        <span id="cameraInfo">Camera: 0, 20, 50</span>
+      </div>
+    </div>
+
+    <!-- Simple instructions -->
+    <div id="instructions" class="instructions fade-in">
+      <h3><i class="fas fa-info-circle"></i> Welcome</h3>
+      <ul>
+        <li>Click and drag to orbit the camera.</li>
+        <li>Scroll to zoom in and out.</li>
+        <li>Click planets to move the explorer.</li>
+      </ul>
+      <button id="closeInstructions" class="close-btn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Three.js app -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
