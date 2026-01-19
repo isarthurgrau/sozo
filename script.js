@@ -99,7 +99,6 @@ function init() {
         window.addEventListener('mouseup', onMouseUp);
 }
 
-    
     // Setup UI
     setupUI();
     
