@@ -16,6 +16,10 @@ let isInitialized = false;
 let communicationLines = null;
 let communicationTarget = null;
 let autoSaveTimer = null;
+let isDragging = false;
+let draggedObject = null;
+let dragOffset = new THREE.Vector3();
+let dragPlane = new THREE.Plane();
 const AUTO_SAVE_DELAY = 3000; // 3 seconds
 
 // Mind mapping data structure
@@ -23,7 +27,7 @@ let mindMapData = {
     nodes: [],
     connections: [],
     settings: {
-        galaxyTheme: 'spiral',
+        galaxyTheme: 'solar',
         orbitSpeed: 1.0,
         explorerMode: 'auto',
         trailEffect: true
@@ -79,15 +83,22 @@ function init() {
     createInitialNodes();
     
     // Create explorer
-
-    createexplorer
-();
+    createExplorer();
     
     // Setup interactions
     setupInteractions();
     
     // Setup event listeners
     setupEventListeners();
+    function setupEventListeners() {
+        window.addEventListener('click', onNodeClick);
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+}
+
     
     // Setup UI
     setupUI();
@@ -237,21 +248,30 @@ function createMindMapNode(nodeData, index, totalNodes = 4) {
         })
     );
     
-    planet.position.set(
-        Math.cos(angle) * nodeData.distance,
-        0,
-        Math.sin(angle) * nodeData.distance
-    );
-    
-    planet.userData = { 
-        id: `node_${Date.now()}_${index}`,
-        type: 'planet',
-        title: nodeData.title,
-        content: nodeData.content,
-        distance: nodeData.distance,
-        originalAngle: angle,
-        children: []
-    };
+planet.position.set(
+  Math.cos(angle) * nodeData.distance,
+  0,
+  Math.sin(angle) * nodeData.distance
+);
+
+// Override with saved position if present
+if (nodeData.position) {
+  planet.position.set(
+    nodeData.position.x,
+    nodeData.position.y,
+    nodeData.position.z
+  );
+}
+
+planet.userData = {
+  id: `node_${Date.now()}_${index}`,
+  type: 'planet',
+  title: nodeData.title,
+  content: nodeData.content,
+  distance: nodeData.distance,
+  originalAngle: angle,
+  children: []
+};
     
     scene.add(planet);
     planets.push(planet);
@@ -432,17 +452,63 @@ function setupInteractions() {
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 }
+function onMouseDown(event) {
+  if (mindMapData.settings.galaxyTheme !== 'freeform') return;
 
-// Setup event listeners
-function setupEventListeners() {
-    // Click event for node selection
-    window.addEventListener('click', onNodeClick);
-    
-    // Resize event
-    window.addEventListener('resize', onWindowResize);
-    
-    // Keyboard controls
-    window.addEventListener('keydown', onKeyDown);
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(planets);
+
+  if (intersects.length > 0) {
+    draggedObject = intersects[0].object;
+    isDragging = true;
+
+    // Define a drag plane through the hit point, facing the camera
+    dragPlane.setFromNormalAndCoplanarPoint(
+      camera.getWorldDirection(new THREE.Vector3()).clone().negate(),
+      intersects[0].point
+    );
+
+    // Compute offset between object and plane hit
+    const intersectionPoint = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlane, intersectionPoint);
+    dragOffset.copy(draggedObject.position).sub(intersectionPoint);
+  }
+}
+
+function onMouseMove(event) {
+  if (!isDragging || !draggedObject) return;
+  if (mindMapData.settings.galaxyTheme !== 'freeform') return;
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersectionPoint = new THREE.Vector3();
+
+  if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+    const newPos = intersectionPoint.add(dragOffset);
+    draggedObject.position.copy(newPos);
+
+    // Persist position into mindMapData for saving
+    const id = draggedObject.userData.id;
+    const nodeData = mindMapData.nodes.find(n => n.id === id);
+    if (nodeData) {
+      nodeData.position = {
+        x: draggedObject.position.x,
+        y: draggedObject.position.y,
+        z: draggedObject.position.z
+      };
+    }
+  }
+}
+
+function onMouseUp() {
+  if (!isDragging) return;
+  isDragging = false;
+  draggedObject = null;
 }
 
 // Setup UI event listeners
@@ -585,8 +651,15 @@ function setupUI() {
         }
     });
 }
-
-// Handle node clicks
+// Apply theme //
+function applyGalaxyTheme(theme) {
+  if (theme === 'solar') {
+    scene.background.set(0x000011);
+  } else if (theme === 'freeform') {
+    scene.background.set(0x000000);
+  }
+}
+// Handle node clicks //
 function onNodeClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -642,30 +715,27 @@ function showNodeInfo(node) {
 
 // Navigate explorer to node //
 function navigateToNode(targetNode) {
-    const target = targetNode.position.clone();
-    target.y += 3;
-    
-    updateexplorer
-Status('Traveling...');
-    
-    // Animate explorer to node //
-    gsap.to(explorer.position, {
-        x: target.x,
-        y: target.y,
-        z: target.z,
-        duration: 3,
-        ease: "power2.out",
-        onUpdate: () => {
-            // explorer.lookAt(targetNode.position);
-        },
-        onComplete: () => {
-            updateexplorer
-Status('Arrived');
-            setTimeout(() => updateexplorerStatus('Idle'), 2000);
-        }
-    });
-    
-    console.log(`Moving explorer to ${targetNode.userData.title}`);
+  const target = targetNode.position.clone();
+  target.y += 3;
+
+  updateExplorerStatus('Traveling...');
+
+  gsap.to(explorer.position, {
+    x: target.x,
+    y: target.y,
+    z: target.z,
+    duration: 3,
+    ease: "power2.out",
+    onUpdate: () => {
+      // explorer.lookAt(targetNode.position);
+    },
+    onComplete: () => {
+      updateExplorerStatus('Arrived');
+      setTimeout(() => updateExplorerStatus('Idle'), 2000);
+    }
+  });
+
+  console.log(`Moving explorer to ${targetNode.userData.title}`);
 }
 
 // Save node changes
@@ -1110,36 +1180,41 @@ function updateMoonLabel(moonNode, asteroidsVisible) {
 
 // Apply settings
 function applySettings() {
-    const theme = document.getElementById('galaxyTheme').value;
-    const mode = document.getElementById('exploreMode').value;
-    const trail = document.getElementById('trailEffect').checked;
-    const speed = parseFloat(document.getElementById('orbitSpeed').value);
+  const theme = document.getElementById('galaxyTheme').value;
+  const mode  = document.getElementById('explorerMode').value;
+  const trail = document.getElementById('trailEffect').checked;
+  const speed = parseFloat(document.getElementById('orbitSpeed').value);
     
     // Update global variables
     explorerMode = mode;
-    trailEffect = trail;
-    orbitSpeed = speed;
+    trailEffect  = trail;
+    orbitSpeed   = speed;
     
     // Update mind map data
     mindMapData.settings = {
-        galaxyTheme: theme,
-        orbitSpeed: speed,
-        explorerMode: mode,
-        trailEffect: trail
-    };
+    galaxyTheme: theme,
+    orbitSpeed:  speed,
+    explorerMode: mode,
+    trailEffect:  trail
+  };
+  applyGalaxyTheme(theme);
+
+  document.dispatchEvent(new CustomEvent('settingsChanged'));
+  document.getElementById('settingsPanel').classList.add('hidden');
+  console.log('Settings applied');
+}
     
     // Trigger auto-save event
     document.dispatchEvent(new CustomEvent('settingsChanged'));
     
     document.getElementById('settingsPanel').classList.add('hidden');
     console.log('Settings applied');
-}
 
 // Reset to default settings
 function resetToDefaultSettings() {
     // Default values
     const defaultSettings = {
-        galaxyTheme: 'spiral',
+        galaxyTheme: 'solar',
         orbitSpeed: 1.0,
         explorerMode: 'auto',
         trailEffect: true
@@ -1169,10 +1244,11 @@ function loadSavedSettings() {
     if (mindMapData.settings) {
         const settings = mindMapData.settings;
         
-        // Update form values
-        if (settings.galaxyTheme) {
-            document.getElementById('galaxyTheme').value = settings.galaxyTheme;
-        }
+    // Update form values
+    if (settings.galaxyTheme) {
+        document.getElementById('galaxyTheme').value = settings.galaxyTheme;
+        applyGalaxyTheme(settings.galaxyTheme);
+}
         if (settings.orbitSpeed) {
             document.getElementById('orbitSpeed').value = settings.orbitSpeed;
             document.getElementById('orbitSpeedValue').textContent = settings.orbitSpeed.toFixed(1);
@@ -1180,7 +1256,7 @@ function loadSavedSettings() {
         }
         if (settings.explorerMode) {
             document.getElementById('explorerMode').value = settings.explorerMode;
-            exploreMode = settings.explorerMode;
+            explorerMode = settings.explorerMode;
         }
         if (settings.trailEffect !== undefined) {
             document.getElementById('trailEffect').checked = settings.trailEffect;
@@ -1190,10 +1266,12 @@ function loadSavedSettings() {
         console.log('Saved settings loaded');
     } else {
         // Set default values if no saved settings
-        resetToDefaultSettings();
-    }
-}
-
+        const defaultSettings = {
+        galaxyTheme: 'solar',
+            orbitSpeed: 1.0,
+            explorerMode: 'auto',
+            trailEffect: true
+        };  
 // Save to local storage
 function saveToLocalStorage() {
     try {
@@ -1533,10 +1611,10 @@ function goHome() {
                 createCommunicationLines(explorer
 , sun);
             }
-            updateexplorerStatus('Idle');
+            updateExplorerStatus('Idle');
         }
     });
-    updateexplorerStatus('Returning Home');
+    updateExplorerStatus('Returning Home');
 }
 
 function resetCamera() {
@@ -1627,7 +1705,7 @@ function updateParentNodeOptions(parentType = 'planet') {
     }
 }
 
-function updateexplorerStatus(status) {
+function updateExplorerStatus(status) {
     document.getElementById('explorerStatus').textContent = status;
 }
 
@@ -1672,45 +1750,45 @@ function animate() {
     // Update controls
     controls.update();
     
-    // Animate planets and subnodes
-    planets.forEach((planet, index) => {
-        const time = Date.now() * 0.0001 * orbitSpeed;
-        
-        if (planet.userData.type === 'planet') {
-            // Animate planets around the sun
-            const angle = planet.userData.originalAngle + time * (0.5 + index * 0.2);
-            planet.position.x = Math.cos(angle) * planet.userData.distance;
-            planet.position.z = Math.sin(angle) * planet.userData.distance;
-            
-            // Animate moons around this planet
-            if (planet.userData.children) {
-                planet.userData.children.forEach(childId => {
-                    const moon = planets.find(p => p.userData.id === childId);
-                    if (moon && moon.userData.type === 'moon') {
-                        const moonTime = Date.now() * 0.0002 * orbitSpeed; // Faster moon rotation
-                        const moonAngle = moon.userData.originalAngle + moonTime;
-                        moon.position.x = planet.position.x + Math.cos(moonAngle) * moon.userData.distance;
-                        moon.position.z = planet.position.z + Math.sin(moonAngle) * moon.userData.distance;
-                        moon.position.y = planet.position.y; // Keep same Y level as parent
-                        
-                        // Animate asteroids around this moon
-                        if (moon.userData.children) {
-                            moon.userData.children.forEach(asteroidId => {
-                                const asteroid = planets.find(p => p.userData.id === asteroidId);
-                                if (asteroid && asteroid.userData.type === 'asteroid') {
-                                    const asteroidTime = Date.now() * 0.0003 * orbitSpeed; // Even faster asteroid rotation
-                                    const asteroidAngle = asteroid.userData.originalAngle + asteroidTime;
-                                    asteroid.position.x = moon.position.x + Math.cos(asteroidAngle) * asteroid.userData.distance;
-                                    asteroid.position.z = moon.position.z + Math.sin(asteroidAngle) * asteroid.userData.distance;
-                                    asteroid.position.y = moon.position.y; // Same level as moon
-                                }
-                            });
-                        }
-                    }
-                });
+    // Animate planets and subnodes (only in solar mode)
+if (mindMapData.settings.galaxyTheme === 'solar') {
+  planets.forEach((planet, index) => {
+    const time = Date.now() * 0.0001 * orbitSpeed;
+
+    if (planet.userData.type === 'planet') {
+      const angle = planet.userData.originalAngle + time * (0.5 + index * 0.2);
+      planet.position.x = Math.cos(angle) * planet.userData.distance;
+      planet.position.z = Math.sin(angle) * planet.userData.distance;
+
+      // Moons and asteroids as you already have them
+      if (planet.userData.children) {
+        planet.userData.children.forEach(childId => {
+          const moon = planets.find(p => p.userData.id === childId);
+          if (moon && moon.userData.type === 'moon') {
+            const moonTime  = Date.now() * 0.0002 * orbitSpeed;
+            const moonAngle = moon.userData.originalAngle + moonTime;
+            moon.position.x = planet.position.x + Math.cos(moonAngle) * moon.userData.distance;
+            moon.position.z = planet.position.z + Math.sin(moonAngle) * moon.userData.distance;
+            moon.position.y = planet.position.y;
+
+            if (moon.userData.children) {
+              moon.userData.children.forEach(asteroidId => {
+                const asteroid = planets.find(p => p.userData.id === asteroidId);
+                if (asteroid && asteroid.userData.type === 'asteroid') {
+                  const asteroidTime  = Date.now() * 0.0003 * orbitSpeed;
+                  const asteroidAngle = asteroid.userData.originalAngle + asteroidTime;
+                  asteroid.position.x = moon.position.x + Math.cos(asteroidAngle) * asteroid.userData.distance;
+                  asteroid.position.z = moon.position.z + Math.sin(asteroidAngle) * asteroid.userData.distance;
+                  asteroid.position.y = moon.position.y;
+                }
+              });
             }
-        }
-    });
+          }
+        });
+      }
+    }
+  });
+}
     
     // Animate orbit rings (subtle pulsing effect)
     scene.children.forEach(child => {
@@ -1776,4 +1854,4 @@ function cleanup() {
 window.addEventListener('beforeunload', cleanup);
 
 // Start the application when the page loads
-window.addEventListener('load', init); 
+window.addEventListener('load', init);}}
