@@ -8,11 +8,15 @@ import {
 // Core globals
 let scene, camera, renderer, controls, labelRenderer;
 let planets = [];
-let explorer;
+// let explorer;
+// let raycaster, mouse;
 let raycaster, mouse;
 let animationId;
-let orbitSpeed = 0.3;
+let orbitSpeed = 0.3;         // base speed, don’t change
+let orbitSpeedMultiplier = 1.0; // controlled by slider
 let isInitialized = false;
+// let explorerTargetNode = null;   // last-clicked node
+// let explorerLine = null;         // line connecting node → explorer
 
 // Basic data model (minimal)
 const mindMapData = {
@@ -68,7 +72,7 @@ function init() {
   // Core nodes
   createCentralNode();
   createInitialPlanets();
-  createExplorer();
+  // createExplorer();
 
   // Interaction
   setupInteractions();
@@ -130,26 +134,26 @@ function createStarfield() {
 // --- Nodes ------------------------------------------------------
 
 function createCentralNode() {
-  const geo = new THREE.SphereGeometry(5, 32, 32);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+  const geo = new THREE.SphereGeometry(4, 32, 32);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xdedede });
   const sun = new THREE.Mesh(geo, mat);
   sun.position.set(0, 0, 0);
   sun.userData = {
     id: 'central',
     type: 'central',
-    title: 'Central Idea',
-    content: 'Your main thought or project'
+    title: 'System Center',
+    content: 'Your main thought or concept goes here.'
   };
   scene.add(sun);
   planets.push(sun);
 
   // Glow
   const glow = new THREE.Mesh(
-    new THREE.SphereGeometry(6, 32, 32),
+    new THREE.SphereGeometry(4.5, 32, 32),
     new THREE.MeshBasicMaterial({
-      color: 0xffcc00,
+      color: 0xdedede,
       transparent: true,
-      opacity: 0.3
+      opacity: 0.2
     })
   );
   glow.position.copy(sun.position);
@@ -162,33 +166,43 @@ function createCentralNode() {
 }
 
 function createInitialPlanets() {
+  const palette = [
+    0x645394,
+    0xa44242,
+    0xa47342,
+    0xa4a442,
+    0x42a442,
+    0x42a4a4,
+    0x4273a4
+  ];
+
   const nodes = [
     {
-      title: 'Research',
-      content: 'Gather information and data',
-      color: 0x88ccff,
-      distance: 15,
+      title: 'Related Idea',
+      content: 'Short description here',
+      color: palette[1],
+      distance: 14,
       size: 2
     },
     {
-      title: 'Planning',
-      content: 'Create strategies and timelines',
-      color: 0xff88cc,
-      distance: 22,
+      title: 'Next Related Idea',
+      content: 'Short description here',
+      color: palette[2],
+      distance: 18,
       size: 2.2
     },
     {
-      title: 'Development',
-      content: 'Build and implement solutions',
-      color: 0x66ff88,
-      distance: 29,
-      size: 2.4
+      title: 'Another Related Item',
+      content: 'Short description here',
+      color: palette[3],
+      distance: 24,
+      size: 2.2
     },
     {
-      title: 'Testing',
-      content: 'Validate and refine',
-      color: 0xff6666,
-      distance: 36,
+      title: 'Something Else',
+      content: 'Short description here',
+      color: palette[5],
+      distance: 30,
       size: 2.1
     }
   ];
@@ -233,7 +247,7 @@ function createPlanet(nodeData, index, total) {
 function createOrbitRing(distance) {
   const ringGeo = new THREE.RingGeometry(distance - 0.05, distance + 0.05, 64);
   const ringMat = new THREE.MeshBasicMaterial({
-    color: 0x00ffcc,
+    color: 0xcccccc,
     side: THREE.DoubleSide,
     transparent: true,
     opacity: 0.4
@@ -255,43 +269,43 @@ function createNodeLabel(node, title) {
 
 // --- Explorer ---------------------------------------------------
 
-function createExplorer() {
-  const div = document.createElement('div');
-  div.className = 'explorer-icon';
-  div.innerHTML = '<i class="fa-solid fa-user-astronaut"></i>';
-  const label = new CSS2DObject(div);
+// function createExplorer() {
+//  const div = document.createElement('div');
+//  div.className = 'explorer-icon';
+//  div.innerHTML = '<i class="fa-solid fa-user-astronaut"></i>';
+//  const label = new CSS2DObject(div);
 
-  explorer = new THREE.Object3D();
-  explorer.position.set(0, 0, 15);
-  explorer.add(label);
-  scene.add(explorer);
+//  explorer = new THREE.Object3D();
+//  explorer.position.set(0, 0, 15);
+//  explorer.add(label);
+//  scene.add(explorer);
 
-  updateExplorerStatus('Idle');
-}
+//  updateExplorerStatus('Idle');
+// }
 
 // Move explorer in a simple linear interpolation
-function moveExplorerTo(target) {
-  const start = explorer.position.clone();
-  const end = target.clone();
-  const duration = 1.5;
-  const startTime = performance.now();
+// function moveExplorerTo(target) {
+//  const start = explorer.position.clone();
+//  const end = target.clone();
+//  const duration = 1.5;
+//  const startTime = performance.now();
 
-  updateExplorerStatus('Traveling...');
+  // updateExplorerStatus('Traveling...');
 
-  function step(now) {
-    const t = Math.min((now - startTime) / (duration * 1000), 1);
-    explorer.position.lerpVectors(start, end, t);
+//  function step(now) {
+//    const t = Math.min((now - startTime) / (duration * 1000), 1);
+//    explorer.position.lerpVectors(start, end, t);
 
-    if (t < 1) {
-      requestAnimationFrame(step);
-    } else {
-      updateExplorerStatus('Arrived');
-      setTimeout(() => updateExplorerStatus('Idle'), 1000);
-    }
-  }
+//    if (t < 1) {
+//     requestAnimationFrame(step);
+//    } else {
+//      updateExplorerStatus('Arrived');
+//      setTimeout(() => updateExplorerStatus('Idle'), 1000);
+//    }
+////  }
 
-  requestAnimationFrame(step);
-}
+//  requestAnimationFrame(step);
+//}
 
 // --- Interaction ------------------------------------------------
 
@@ -311,6 +325,15 @@ function setupEventListeners() {
     });
   }
 }
+// Slider controls only the multiplier
+  const speedSlider = document.getElementById('orbitSpeed');
+  const speedValue = document.getElementById('orbitSpeedValue');
+  if (speedSlider && speedValue) {
+    speedSlider.addEventListener('input', (e) => {
+      orbitSpeedMultiplier = parseFloat(e.target.value);
+      speedValue.textContent = `${orbitSpeedMultiplier.toFixed(1)}x`;
+    });
+  }
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -330,9 +353,8 @@ function onClick(event) {
 
   if (intersects.length > 0) {
     const targetNode = intersects[0].object;
-    const target = targetNode.position.clone();
-    target.y = 3;
-    moveExplorerTo(target);
+    // Placeholder: later we’ll open an edit panel here.
+    console.log('Clicked node:', targetNode.userData.title);
   }
 }
 
@@ -365,8 +387,7 @@ function updateCameraInfo() {
 function animate() {
   animationId = requestAnimationFrame(animate);
 
-  // Simple orbital motion for non-central planets
-  const time = performance.now() * 0.001 * orbitSpeed;
+  const time = performance.now() * 0.001 * orbitSpeed * orbitSpeedMultiplier;
 
   planets.forEach((p) => {
     if (p.userData.type === 'planet') {

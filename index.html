@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sōzō - 3D Mind Map (Minimal)</title>
+  <link rel="icon" type="image/x-icon" href="favicon/favicon.ico" />
 
   <link rel="stylesheet" href="styles.css" />
   <link
@@ -13,13 +14,13 @@
 
   <!-- Three.js import map -->
   <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
-        "three/addons": "https://unpkg.com/three@0.160.1/examples/jsm"
-      }
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
     }
-  </script>
+  }
+</script>
 </head>
 <body>
   <!-- Loading Screen -->
@@ -43,13 +44,22 @@
         <span id="nodeCount">0 Nodes</span>
       </div>
       <div class="status-item">
-        <i class="fa-solid fa-rocket"></i>
-        <span id="explorerStatus">Idle</span>
-      </div>
-      <div class="status-item">
         <i class="fa-solid fa-eye"></i>
         <span id="cameraInfo">Camera: 0, 20, 50</span>
       </div>
+      <div class="status-item">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Speed</span>
+        <input
+            id="orbitSpeed"
+            type="range"
+            min="0.1"
+            max="1.5"
+            step="0.1"
+            value="1.0"
+            class="speed-slider"
+        />
+        <span id="orbitSpeedValue">1.0x</span>
     </div>
 
     <!-- Simple instructions -->
@@ -59,7 +69,8 @@
         <li>Click and drag to orbit the camera.</li>
         <li>Scroll to zoom in and out.</li>
         <li>Click planets to move the explorer.</li>
-      </ul>
+        <li>Use the Speed slider in the top bar to slow down or speed up orbits.</li>
+    </ul>
       <button id="closeInstructions" class="close-btn">
         <i class="fas fa-times"></i>
       </button>
